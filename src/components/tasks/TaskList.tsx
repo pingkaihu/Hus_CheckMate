@@ -18,8 +18,6 @@ export function TaskList() {
       dispatch({ type: 'UNDO_TASK', taskId: task.id, expReward: task.expReward });
     } else {
       dispatch({ type: 'COMPLETE_TASK', taskId: task.id, expReward: task.expReward });
-
-      // Check if this causes a level-up by comparing before/after
       setToast(`✅ ${task.title} 完成！+${task.expReward} EXP`);
     }
   }, [dispatch]);
@@ -31,21 +29,21 @@ export function TaskList() {
   const rank = getRankForLevel(state.activeJob, activeJob.level);
 
   return (
-    <div className="mt-4">
+    <div className="mt-5">
       {/* 標題列 */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-          今日任務
+        <h3 className="text-sm font-bold text-ink-faded tracking-wider" style={{ fontFamily: 'Georgia, serif' }}>
+          ── 今日任務 ──
         </h3>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-ink-pale">
           {completedCount} / {tasks.length} 完成
         </span>
       </div>
 
       {/* 滿級提示 */}
       {activeJob.level >= MAX_LEVEL && (
-        <div className="mb-3 p-3 rounded-lg bg-yellow-900/30 border border-yellow-700 text-xs text-yellow-400 text-center">
-          🏆 你已達到{rank.name}的最高境界，任務仍可持續完成！
+        <div className="mb-3 p-3 rounded-lg border border-border-dark bg-parchment-dark text-xs text-gold text-center italic">
+          ✦ 汝已達{rank.name}之最高境界，願繼續精進！✦
         </div>
       )}
 
@@ -62,7 +60,7 @@ export function TaskList() {
       </div>
 
       {tasks.length === 0 && (
-        <p className="text-center text-gray-600 text-sm py-8">
+        <p className="text-center text-ink-pale text-sm py-8 italic">
           目前沒有可用任務
         </p>
       )}

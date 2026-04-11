@@ -6,15 +6,16 @@ interface Props {
   level: number;
 }
 
-const JOB_COLORS: Record<JobType, string> = {
-  warrior: 'bg-red-900/50 text-red-300 border border-red-700',
-  scholar: 'bg-blue-900/50 text-blue-300 border border-blue-700',
+const JOB_STYLES: Record<JobType, string> = {
+  warrior: 'bg-warrior-bg text-warrior border border-warrior-border',
+  scholar: 'bg-scholar-bg text-scholar border border-scholar-border',
 };
 
 export function JobBadge({ jobType, level }: Props) {
   const rank = getRankForLevel(jobType, level);
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${JOB_COLORS[jobType]}`}>
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${JOB_STYLES[jobType]}`}
+          style={{ fontFamily: 'Georgia, serif' }}>
       {rank.name}
     </span>
   );

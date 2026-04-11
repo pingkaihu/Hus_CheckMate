@@ -22,8 +22,10 @@ function makeNewJob(jobType: JobType): JobProgress {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'INIT_CHARACTER': {
+      const trimmedName = action.name.trim().slice(0, 16); // enforce max length
+      if (trimmedName.length === 0) return state;
       return {
-        characterName: action.name.trim(),
+        characterName: trimmedName,
         jobs: [makeNewJob(action.jobType)],
         activeJob: action.jobType,
         lastResetDate: todayString(),
