@@ -1,6 +1,6 @@
 ---
 name: generate2dsprite
-description: "Generate and postprocess general 2D pixel-art assets and animation sheets: creatures, characters, NPCs, spells, projectiles, impacts, props, summons, and transparent GIF exports. Use when Codex should infer the asset plan from a natural-language request, call built-in `image_gen` for solid-magenta raw sheets, and use the local processor only for chroma-key cleanup, frame extraction, alignment, QC, and transparent exports."
+description: "Generate and postprocess general 2D pixel-art assets and animation sheets: creatures, characters, NPCs, spells, projectiles, impacts, props, summons, and transparent GIF exports. The agent infers the asset plan from a natural-language request, calls the environment's built-in image generator (`image_gen` for Codex, `generate_image` for Antigravity) for solid-magenta raw sheets, and uses the local processor only for chroma-key cleanup, frame extraction, alignment, QC, and transparent exports."
 ---
 
 # Generate2dsprite
@@ -32,7 +32,7 @@ Read [references/modes.md](references/modes.md) when the request is ambiguous.
 
 - Decide the asset plan yourself. Do not force the user to spell out sheet size, frame count, or bundle structure when the request already implies them.
 - Write the art prompt yourself. Do not default to the prompt-builder script.
-- Use built-in `image_gen` for every raw image.
+- Use the built-in image generator appropriate for your environment (`image_gen` for Codex, `generate_image` for Antigravity) for every raw image.
 - Use the script only as a deterministic processor: magenta cleanup, frame splitting, component filtering, scaling, alignment, QC metadata, transparent sheet export, and GIF export.
 - Treat script flags as execution primitives chosen by the agent, not user-facing hardcoded workflow.
 - If a generated sheet touches cell edges, drifts in scale, or breaks a projectile / impact loop, either reprocess with better primitive settings or regenerate the raw sheet.
@@ -71,17 +71,30 @@ Keep the strict parts:
 
 ### 3. Generate the raw image
 
-Use built-in `image_gen`.
+Choose the flow based on your environment:
 
-After generation:
+**Flow A: For Codex**
+- Use built-in `image_gen`.
+- Find the raw PNG under `$CODEX_HOME/generated_images/...`
+- Copy or reference it from the working output folder.
 
-- find the raw PNG under `$CODEX_HOME/generated_images/...`
-- copy or reference it from the working output folder
-- keep the original generated image in place
+**Flow B: For Antigravity**
+- Use the built-in `generate_image` tool.
+- Find the absolute path to the generated raw PNG from the tool's response (usually in the Artifacts directory).
+- Pass this absolute path directly to the local processor script.
+
+In both environments, keep the original generated image in place.
 
 ### 4. Postprocess locally
 
-Run `scripts/generate2dsprite.py process` on the raw image.
+Choose the flow based on your environment:
+
+**Flow A: For Codex**
+- Run `scripts/generate2dsprite.py process` on the raw image (typically via bash).
+
+**Flow B: For Antigravity**
+- Use the `run_command` tool to run `python scripts/generate2dsprite.py process` on the raw image.
+- Note: Antigravity runs in Powershell on Windows, so ensure paths and commands are formatted accordingly.
 
 The processor is intentionally low-level. The agent chooses:
 
