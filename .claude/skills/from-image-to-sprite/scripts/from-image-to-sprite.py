@@ -244,9 +244,12 @@ def cmd_process(args: argparse.Namespace) -> None:
             else:
                 cleaned = cell_img
 
-            bbox = cleaned.getbbox()
-            if bbox:
-                cleaned = cleaned.crop(bbox)
+            if getattr(args, "no_crop", False):
+                pass
+            else:
+                bbox = cleaned.getbbox()
+                if bbox:
+                    cleaned = cleaned.crop(bbox)
             cropped_frames.append(cleaned)
 
     # Compose raw sheet
@@ -358,6 +361,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--shared-scale",
         action="store_true",
         help="Use common scale across all frames",
+    )
+    p_process.add_argument(
+        "--no-crop",
+        action="store_true",
+        help="Disable bounding box cropping to preserve original AI grid alignment",
     )
     return parser
 
