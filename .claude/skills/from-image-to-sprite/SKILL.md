@@ -1,13 +1,13 @@
 ---
 name: from-image-to-sprite
-description: "Convert an existing static illustration or sprite into a tiled animation sheet with transparent background, per-frame PNGs, and a looping GIF. Skips AI generation — the user supplies the source image. Handles white, magenta, or auto-detected backgrounds."
+description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. The agent builds a prompt, uses an AI generator to create a multi-frame raw-sheet based on the user's source image, and then slices the raw-sheet into individual frames, handling background removal and GIF export."
 ---
 
 # From-Image-to-Sprite
 
-Use this skill when the user has an existing image they want to convert into a game-ready sprite sheet bundle.
+Use this skill when the user provides an existing image and wants to animate it (e.g. walk cycle, attack) into a game-ready sprite sheet bundle.
 
-If the user needs the sprite generated from a text description, use `generate2dsprite` instead.
+If the user does NOT have a starting image and just has a text description, use `generate2dsprite` instead.
 
 ## Parameters
 
@@ -57,35 +57,58 @@ From context, decide:
 
 Choose an `output_dir`. Convention: `material/sprites/<slug>/` where slug is derived from the input filename or the user-provided name.
 
-### 3. Run the script
+### 3. Generate Prompt
+
+Run the prompt builder to get a standardized prompt for the AI generator:
+
+```powershell
+python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py build-prompt `
+  --mode <action> `
+  --frames <N> `
+  --cols <C> `
+  --prompt "<character_description>"
+```
+
+### 4. AI Image Generation
+
+Use your environment's built-in tool (`generate_image` for Antigravity, `image_gen` for Codex) to perform Image-to-Image generation:
+1. Supply the prompt generated in step 3.
+2. Supply the source image path provided by the user as the reference image.
+3. Wait for the AI to return the path to the newly generated raw-sheet.
+
+### 5. Process the Raw-Sheet
+
+Run the processor to split the generated grid into frames and remove the background:
 
 **For Antigravity (Windows / PowerShell):**
 ```powershell
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py `
-  --input <path> `
+python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py process `
+  --input <path_to_AI_generated_raw_sheet> `
   --output-dir <output_dir> `
   --frames <N> `
   --cols <C> `
   --duration <ms> `
-  --bg-mode <mode> `
+  --bg-mode magenta `
+  --bg-threshold 100 `
   --align <align> `
   --shared-scale
 ```
 
 **For Codex (bash):**
 ```bash
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py \
-  --input <path> \
+python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py process \
+  --input <path_to_AI_generated_raw_sheet> \
   --output-dir <output_dir> \
   --frames <N> \
   --cols <C> \
   --duration <ms> \
-  --bg-mode <mode> \
+  --bg-mode magenta \
+  --bg-threshold 100 \
   --align <align> \
   --shared-scale
 ```
 
-### 4. QC the result
+### 6. QC the result
 
 Read `pipeline-meta.json` from the output directory. Check:
 
