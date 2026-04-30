@@ -1,6 +1,6 @@
 ---
 name: image-to-sprite
-description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. Claude builds the prompt, the user runs AI generation, then the script slices the raw-sheet into individual frames with background removal and GIF export."
+description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. The agent builds a prompt, uses an AI generator to create a multi-frame raw-sheet based on the user's source image, and then slices the raw-sheet into individual frames, handling background removal and GIF export."
 ---
 
 # image-to-sprite
@@ -75,11 +75,16 @@ NO borders, NO lines between cells.
 Background MUST be 100% solid flat magenta (#FF00FF). NO gradients, NO shadows.
 ```
 
-Supply the source image as the reference image in the AI tool.
+### 4. AI Image Generation
 
-### 4. Process the Raw-Sheet
+Use your environment's built-in tool (`generate_image` for Antigravity, `image_gen` for Codex) to perform Image-to-Image generation:
+1. Supply the prompt generated in step 3.
+2. Supply the source image path provided by the user as the reference image.
+3. Wait for the AI to return the path to the newly generated raw-sheet.
 
-Once the user provides the AI-generated raw sheet path, run the processor:
+### 5. Process the Raw-Sheet
+
+Once the AI returns the generated raw sheet path, run the processor:
 
 **Windows / PowerShell:**
 ```powershell
@@ -109,7 +114,7 @@ python .claude/skills/image-to-sprite/scripts/image-to-sprite.py \
   --shared-scale
 ```
 
-### 5. QC the result
+### 6. QC the result
 
 Read `pipeline-meta.json` from the output directory. Check:
 
@@ -122,7 +127,7 @@ If the sprite is too small (fill ratio below 50%), suggest re-running with `--fi
 If edge touch is detected, suggest `--fit-scale 0.75`.
 If `sprite_bbox` ≈ full source size, background removal likely failed — suggest `--bg-mode white --bg-threshold 40`.
 
-### 6. Return the bundle
+### 7. Return the bundle
 
 Report the output directory and confirm these files exist:
 - `source.png`
