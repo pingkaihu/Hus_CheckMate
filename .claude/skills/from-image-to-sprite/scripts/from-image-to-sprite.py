@@ -242,7 +242,10 @@ def cmd_build_prompt(args: argparse.Namespace) -> None:
         f"CHARACTER DETAILS: {args.prompt}. "
         "Use the provided image as a strict character reference for style, colors, and design. "
         f"Grid rules: EXACTLY {args.frames} cells arranged in {rows} rows of {args.cols} columns. "
-        "The character must be IDENTICAL in every cell (same bounding box, same pixel scale). "
+        "Use an absolutely fixed orthographic camera distance with zero perspective distortion. "
+        "The character's body MUST maintain absolutely identical head-to-toe proportions, height, and volume across all cells. "
+        "All frames must be perfectly registered. The character's head and feet must remain at the exact same vertical level in every cell. "
+        "Ensure strict geometric consistency: NO zooming, NO resizing, NO breathing effect, NO morphing between cells. "
         "NO borders, NO lines between cells. "
         "Background MUST be 100% solid flat magenta (#FF00FF). NO gradients, NO shadows."
     )
@@ -287,6 +290,11 @@ def cmd_process(args: argparse.Namespace) -> None:
                 break
             box = (col * cell_w, row * cell_h, (col + 1) * cell_w, (row + 1) * cell_h)
             cell_img = src.crop(box)
+            
+            trim = getattr(args, "trim_cell", 0)
+            if trim > 0:
+                cell_img = cell_img.crop((trim, trim, cell_w - trim, cell_h - trim))
+
             raw_frames.append(cell_img.copy())
 
             if bg_color_used:
@@ -416,6 +424,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-crop",
         action="store_true",
         help="Disable bounding box cropping to preserve original AI grid alignment",
+    )
+    p_process.add_argument(
+        "--trim-cell",
+        type=int,
+        default=12,
+        help="Trim N pixels from the edge of each cell to remove AI grid lines",
     )
     return parser
 
