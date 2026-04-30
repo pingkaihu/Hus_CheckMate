@@ -38,6 +38,7 @@ def remove_bg_color(
     def dist(r: int, g: int, b: int) -> float:
         return math.sqrt((r - tr) ** 2 + (g - tg) ** 2 + (b - tb) ** 2)
 
+    # 初步掃描：將距離非常近的像素直接設為透明
     for x in range(width):
         for y in range(height):
             r, g, b, a = pixels[x, y]
@@ -48,6 +49,7 @@ def remove_bg_color(
 
     visited: set[tuple[int, int]] = set()
     queue: deque[tuple[int, int]] = deque()
+    # 從邊界開始 Flood Fill
     for x in range(width):
         queue.append((x, 0))
         queue.append((x, height - 1))
@@ -61,23 +63,72 @@ def remove_bg_color(
             continue
         visited.add((x, y))
         r, g, b, a = pixels[x, y]
+        
         if a == 0:
+            # 透明像素繼續往內推
             for dx in (-1, 0, 1):
                 for dy in (-1, 0, 1):
-                    if dx == 0 and dy == 0:
-                        continue
+                    if dx == 0 and dy == 0: continue
                     nb = (x + dx, y + dy)
                     if nb not in visited:
                         queue.append(nb)
-        elif dist(r, g, b) < edge_threshold:
-            pixels[x, y] = (0, 0, 0, 0)
-            for dx in (-1, 0, 1):
-                for dy in (-1, 0, 1):
-                    if dx == 0 and dy == 0:
-                        continue
-                    nb = (x + dx, y + dy)
-                    if nb not in visited:
-                        queue.append(nb)
+        else:
+            d = dist(r, g, b)
+            if d < edge_threshold:
+                # Alpha Matting: 依據距離線性映射 Alpha (距離越近越透明)
+                alpha_ratio = (d - threshold) / (edge_threshold - threshold)
+                alpha_ratio = max(0.0, min(1.0, alpha_ratio))
+                
+                if alpha_ratio < 0.15: # 避免除以接近0的數值造成色彩爆炸
+                    pixels[x, y] = (0, 0, 0, 0)
+                else:
+                    new_alpha = int(255 * alpha_ratio)
+                    # Color Decontamination: 從混合色中扣除背景色，還原真實顏色
+                    orig_r = min(255, max(0, int((r - tr * (1 - alpha_ratio)) / alpha_ratio)))
+                    orig_g = min(255, max(0, int((g - tg * (1 - alpha_ratio)) / alpha_ratio)))
+                    orig_b = min(255, max(0, int((b - tb * (1 - alpha_ratio)) / alpha_ratio)))
+                    pixels[x, y] = (orig_r, orig_g, orig_b, new_alpha)
+                
+                # 邊緣像素仍可繼續往內推尋找其他邊緣
+                for dx in (-1, 0, 1):
+                    for dy in (-1, 0, 1):
+                        if dx == 0 and dy == 0: continue
+                        nb = (x + dx, y + dy)
+                        if nb not in visited:
+                            queue.append(nb)
+                            
+    # --- Defringe (Magenta Spill Suppression) ---
+    # 如果背景色是紫紅色 (R, B 遠大於 G)，執行邊緣消光
+    if tr > tg + 100 and tb > tg + 100:
+        edge_pixels = []
+        for i in range(width):
+            for j in range(height):
+                _, _, _, a_val = pixels[i, j]
+                if a_val > 0:
+                    is_edge = False
+                    # 尋找 2 像素內的透明區域作為邊界判定
+                    for dx in range(-2, 3):
+                        for dy in range(-2, 3):
+                            nx, ny = i + dx, j + dy
+                            if 0 <= nx < width and 0 <= ny < height:
+                                if pixels[nx, ny][3] == 0:
+                                    is_edge = True
+                                    break
+                        if is_edge: break
+                    if is_edge:
+                        edge_pixels.append((i, j))
+        
+        for i, j in edge_pixels:
+            pr, pg, pb, pa = pixels[i, j]
+            # 如果該邊緣像素呈現紫紅色傾向
+            if pr > pg + 5 and pb > pg + 5:
+                magenta_amt = min(pr - pg, pb - pg)
+                # 強力壓制紅藍通道，向綠色(真實亮度)靠攏，消除紫邊
+                new_pr = pr - int(magenta_amt * 0.95)
+                new_pb = pb - int(magenta_amt * 0.95)
+                pixels[i, j] = (new_pr, pg, new_pb, pa)
+    # --------------------------------------------
+
     return img
 
 
