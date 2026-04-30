@@ -29,7 +29,7 @@ def remove_bg_color(
     edge_threshold: int | None = None,
 ) -> Image.Image:
     if edge_threshold is None:
-        edge_threshold = int(threshold * 1.5)
+        edge_threshold = int(threshold * 2.0)
     img = img.convert("RGBA")
     pixels = img.load()
     width, height = img.size
@@ -106,9 +106,9 @@ def remove_bg_color(
                 _, _, _, a_val = pixels[i, j]
                 if a_val > 0:
                     is_edge = False
-                    # 尋找 2 像素內的透明區域作為邊界判定
-                    for dx in range(-2, 3):
-                        for dy in range(-2, 3):
+                    # 尋找 4 像素內的透明區域作為邊界判定
+                    for dx in range(-4, 5):
+                        for dy in range(-4, 5):
                             nx, ny = i + dx, j + dy
                             if 0 <= nx < width and 0 <= ny < height:
                                 if pixels[nx, ny][3] == 0:
@@ -122,10 +122,9 @@ def remove_bg_color(
             pr, pg, pb, pa = pixels[i, j]
             # 如果該邊緣像素呈現紫紅色傾向
             if pr > pg + 5 and pb > pg + 5:
-                magenta_amt = min(pr - pg, pb - pg)
-                # 強力壓制紅藍通道，向綠色(真實亮度)靠攏，消除紫邊
-                new_pr = pr - int(magenta_amt * 0.95)
-                new_pb = pb - int(magenta_amt * 0.95)
+                # 採用標準的 Spill Suppression 演算法，保證 R 和 B 不超過 G
+                new_pr = min(pr, pg)
+                new_pb = min(pb, pg)
                 pixels[i, j] = (new_pr, pg, new_pb, pa)
     # --------------------------------------------
 
