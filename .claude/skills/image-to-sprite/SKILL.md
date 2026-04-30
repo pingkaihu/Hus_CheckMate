@@ -1,6 +1,6 @@
-﻿---
+---
 name: image-to-sprite
-description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. The agent builds a prompt, uses an AI generator to create a multi-frame raw-sheet based on the user's source image, and then slices the raw-sheet into individual frames, handling background removal and GIF export."
+description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. Claude builds the prompt, the user runs AI generation, then the script slices the raw-sheet into individual frames with background removal and GIF export."
 ---
 
 # image-to-sprite
@@ -13,7 +13,7 @@ If the user does NOT have a starting image and just has a text description, use 
 
 Infer or ask for these from the user request:
 
-- `input`: path to the source image (required — ask if not provided)
+- `input`: path to the AI-generated raw sheet (required — ask if not provided)
 - `frames`: total number of animation frames (default: 4)
 - `cols`: columns in the grid (default: 2; rows = ceil(frames/cols))
 - `duration`: ms per frame (default: 200)
@@ -41,7 +41,7 @@ Infer or ask for these from the user request:
 
 ### 1. Collect the source image
 
-If the user has not provided an image path:
+If the user has not provided the character image path:
 > "Which image file would you like to convert into a sprite sheet? Please provide the file path."
 
 Once you have the path, confirm it exists before proceeding.
@@ -59,30 +59,31 @@ Choose an `output_dir`. Convention: `material/sprites/<slug>/` where slug is der
 
 ### 3. Generate Prompt
 
-Run the prompt builder to get a standardized prompt for the AI generator:
+Write the following prompt for the user to use in their AI image-to-image tool (ComfyUI, Leonardo, etc.), filling in the placeholders:
 
-```powershell
-python .claude/skills/image-to-sprite/scripts/image-to-sprite.py build-prompt `
-  --mode <action> `
-  --frames <N> `
-  --cols <C> `
-  --prompt "<character_description>"
+```
+A {rows}×{cols} pixel art animation sprite sheet.
+ACTION: {action — e.g. walk, attack, idle}.
+CHARACTER DETAILS: {describe the character's style, colors, and design from the source image}.
+Use the provided image as a strict character reference for style, colors, and design.
+Grid rules: EXACTLY {frames} cells arranged in {rows} rows of {cols} columns.
+Use an absolutely fixed orthographic camera distance with zero perspective distortion.
+The character's body MUST maintain absolutely identical head-to-toe proportions, height, and volume across all cells.
+All frames must be perfectly registered. The character's head and feet must remain at the exact same vertical level in every cell.
+Ensure strict geometric consistency: NO zooming, NO resizing, NO breathing effect, NO morphing between cells.
+NO borders, NO lines between cells.
+Background MUST be 100% solid flat magenta (#FF00FF). NO gradients, NO shadows.
 ```
 
-### 4. AI Image Generation
+Supply the source image as the reference image in the AI tool.
 
-Use your environment's built-in tool (`generate_image` for Antigravity, `image_gen` for Codex) to perform Image-to-Image generation:
-1. Supply the prompt generated in step 3.
-2. Supply the source image path provided by the user as the reference image.
-3. Wait for the AI to return the path to the newly generated raw-sheet.
+### 4. Process the Raw-Sheet
 
-### 5. Process the Raw-Sheet
+Once the user provides the AI-generated raw sheet path, run the processor:
 
-Run the processor to split the generated grid into frames and remove the background:
-
-**For Antigravity (Windows / PowerShell):**
+**Windows / PowerShell:**
 ```powershell
-python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process `
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py `
   --input <path_to_AI_generated_raw_sheet> `
   --output-dir <output_dir> `
   --frames <N> `
@@ -94,9 +95,9 @@ python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process `
   --shared-scale
 ```
 
-**For Codex (bash):**
+**bash:**
 ```bash
-python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process \
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py \
   --input <path_to_AI_generated_raw_sheet> \
   --output-dir <output_dir> \
   --frames <N> \
@@ -108,7 +109,7 @@ python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process \
   --shared-scale
 ```
 
-### 6. QC the result
+### 5. QC the result
 
 Read `pipeline-meta.json` from the output directory. Check:
 
@@ -121,7 +122,7 @@ If the sprite is too small (fill ratio below 50%), suggest re-running with `--fi
 If edge touch is detected, suggest `--fit-scale 0.75`.
 If `sprite_bbox` ≈ full source size, background removal likely failed — suggest `--bg-mode white --bg-threshold 40`.
 
-### 5. Return the bundle
+### 6. Return the bundle
 
 Report the output directory and confirm these files exist:
 - `source.png`
@@ -136,29 +137,25 @@ Show the `animation.gif` or `sheet-transparent.png` to the user.
 
 ## Example
 
-User: "Convert `./material/test/teat_warrior.png` into an 8-frame sprite sheet for a 2-second loop."
+User: "Convert `./material/test/warrior.png` into an 8-frame walk cycle for a 2-second loop."
 
 Agent decides:
 - `frames=8`, `cols=4`, `rows=2`, `duration=250`
-- `bg_mode=auto` (image has white background, auto will detect it)
-- `align=bottom` (warrior is a grounded character)
-- `shared_scale=true`
-- `output_dir=material/sprites/teat-warrior/`
+- `bg_mode=magenta`, `align=bottom`, `shared_scale=true`
+- `output_dir=material/sprites/warrior/`
 
 Command:
 ```powershell
 python .claude/skills/image-to-sprite/scripts/image-to-sprite.py `
-  --input ./material/test/teat_warrior.png `
-  --output-dir ./material/sprites/teat-warrior `
+  --input ./material/sprites/warrior/raw-sheet.png `
+  --output-dir ./material/sprites/warrior `
   --frames 8 `
   --cols 4 `
   --duration 250 `
-  --bg-mode auto `
+  --bg-mode magenta `
   --align bottom `
   --shared-scale
 ```
-
-Expected output: `material/sprites/teat-warrior/` with a 512×256 `raw-sheet.png`, `sheet-transparent.png`, 8 frame PNGs, a 2-second looping `animation.gif`, and `pipeline-meta.json`.
 
 ## Defaults
 

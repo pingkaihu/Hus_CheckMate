@@ -234,24 +234,6 @@ def save_transparent_gif(frames: list[Image.Image], out_path: Path, duration: in
     )
 
 
-def cmd_build_prompt(args: argparse.Namespace) -> None:
-    rows = math.ceil(args.frames / args.cols)
-    prompt_text = (
-        f"A {rows}x{args.cols} pixel art animation sprite sheet. "
-        f"ACTION: {args.mode}. "
-        f"CHARACTER DETAILS: {args.prompt}. "
-        "Use the provided image as a strict character reference for style, colors, and design. "
-        f"Grid rules: EXACTLY {args.frames} cells arranged in {rows} rows of {args.cols} columns. "
-        "Use an absolutely fixed orthographic camera distance with zero perspective distortion. "
-        "The character's body MUST maintain absolutely identical head-to-toe proportions, height, and volume across all cells. "
-        "All frames must be perfectly registered. The character's head and feet must remain at the exact same vertical level in every cell. "
-        "Ensure strict geometric consistency: NO zooming, NO resizing, NO breathing effect, NO morphing between cells. "
-        "NO borders, NO lines between cells. "
-        "Background MUST be 100% solid flat magenta (#FF00FF). NO gradients, NO shadows."
-    )
-    print(prompt_text)
-
-
 def cmd_process(args: argparse.Namespace) -> None:
     out_dir: Path = args.output_dir
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -383,71 +365,34 @@ def cmd_process(args: argparse.Namespace) -> None:
     print(str(out_dir.resolve()))
 
 
-def build_parser() -> argparse.ArgumentParser:
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(dest="command")
-
-    p_prompt = subparsers.add_parser("build-prompt", help="Build an image-to-image AI prompt")
-    p_prompt.add_argument("--mode", required=True, help="Action mode (e.g. walk, attack)")
-    p_prompt.add_argument("--frames", type=int, default=8, help="Total frame count")
-    p_prompt.add_argument("--cols", type=int, default=4, help="Grid columns")
-    p_prompt.add_argument("--prompt", required=True, help="Character visual description")
-
-    p_process = subparsers.add_parser("process", help="Process a raw generated grid sheet")
-    p_process.add_argument("--input", required=True, type=Path, help="Source image path")
-    p_process.add_argument("--output-dir", required=True, type=Path, help="Output directory")
-    p_process.add_argument("--frames", type=int, default=4, help="Total frame count")
-    p_process.add_argument("--cols", type=int, default=2, help="Grid columns (rows = ceil(frames/cols))")
-    p_process.add_argument("--duration", type=int, default=200, help="ms per frame")
-    p_process.add_argument(
+    parser.add_argument("--input", required=True, type=Path, help="Source image path")
+    parser.add_argument("--output-dir", required=True, type=Path, help="Output directory")
+    parser.add_argument("--frames", type=int, default=4, help="Total frame count")
+    parser.add_argument("--cols", type=int, default=2, help="Grid columns (rows = ceil(frames/cols))")
+    parser.add_argument("--duration", type=int, default=200, help="ms per frame")
+    parser.add_argument(
         "--bg-mode",
         choices=["white", "magenta", "auto", "none"],
         default="auto",
         help="Background removal mode",
     )
-    p_process.add_argument("--bg-threshold", type=int, default=30, help="Background color distance threshold")
-    p_process.add_argument("--bg-edge-threshold", type=int, default=None)
-    p_process.add_argument("--cell-size", type=int, default=128, help="Output cell size in px")
-    p_process.add_argument("--fit-scale", type=float, default=0.85, help="Sprite fill fraction of cell")
-    p_process.add_argument(
+    parser.add_argument("--bg-threshold", type=int, default=30, help="Background color distance threshold")
+    parser.add_argument("--bg-edge-threshold", type=int, default=None)
+    parser.add_argument("--cell-size", type=int, default=128, help="Output cell size in px")
+    parser.add_argument("--fit-scale", type=float, default=0.85, help="Sprite fill fraction of cell")
+    parser.add_argument(
         "--align",
         choices=["center", "bottom", "feet"],
         default="center",
         help="Sprite alignment within cell",
     )
-    p_process.add_argument(
-        "--shared-scale",
-        action="store_true",
-        help="Use common scale across all frames",
-    )
-    p_process.add_argument(
-        "--no-crop",
-        action="store_true",
-        help="Disable bounding box cropping to preserve original AI grid alignment",
-    )
-    p_process.add_argument(
-        "--trim-cell",
-        type=int,
-        default=12,
-        help="Trim N pixels from the edge of each cell to remove AI grid lines",
-    )
-    return parser
-
-
-def main() -> None:
-    parser = build_parser()
-
-    # Handle legacy call style if no subcommand is provided
-    import sys
-    args_list = sys.argv[1:]
-    if args_list and args_list[0] not in ["build-prompt", "process"] and "--input" in args_list:
-        args_list.insert(0, "process")
-
-    args = parser.parse_args(args_list)
-    if args.command == "build-prompt":
-        cmd_build_prompt(args)
-    else:
-        cmd_process(args)
+    parser.add_argument("--shared-scale", action="store_true", help="Use common scale across all frames")
+    parser.add_argument("--no-crop", action="store_true", help="Disable bounding box cropping")
+    parser.add_argument("--trim-cell", type=int, default=12, help="Trim N px from each cell edge")
+    args = parser.parse_args()
+    cmd_process(args)
 
 
 if __name__ == "__main__":
