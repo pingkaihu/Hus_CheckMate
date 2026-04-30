@@ -1,9 +1,9 @@
----
-name: from-image-to-sprite
+﻿---
+name: image-to-sprite
 description: "Convert an existing static illustration into an animated sprite sheet via AI image-to-image generation. The agent builds a prompt, uses an AI generator to create a multi-frame raw-sheet based on the user's source image, and then slices the raw-sheet into individual frames, handling background removal and GIF export."
 ---
 
-# From-Image-to-Sprite
+# image-to-sprite
 
 Use this skill when the user provides an existing image and wants to animate it (e.g. walk cycle, attack) into a game-ready sprite sheet bundle.
 
@@ -62,7 +62,7 @@ Choose an `output_dir`. Convention: `material/sprites/<slug>/` where slug is der
 Run the prompt builder to get a standardized prompt for the AI generator:
 
 ```powershell
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py build-prompt `
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py build-prompt `
   --mode <action> `
   --frames <N> `
   --cols <C> `
@@ -82,7 +82,7 @@ Run the processor to split the generated grid into frames and remove the backgro
 
 **For Antigravity (Windows / PowerShell):**
 ```powershell
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py process `
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process `
   --input <path_to_AI_generated_raw_sheet> `
   --output-dir <output_dir> `
   --frames <N> `
@@ -96,7 +96,7 @@ python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py proce
 
 **For Codex (bash):**
 ```bash
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py process \
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py process \
   --input <path_to_AI_generated_raw_sheet> \
   --output-dir <output_dir> \
   --frames <N> \
@@ -147,7 +147,7 @@ Agent decides:
 
 Command:
 ```powershell
-python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py `
+python .claude/skills/image-to-sprite/scripts/image-to-sprite.py `
   --input ./material/test/teat_warrior.png `
   --output-dir ./material/sprites/teat-warrior `
   --frames 8 `
