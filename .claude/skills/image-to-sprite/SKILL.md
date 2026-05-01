@@ -62,7 +62,7 @@ Once you have the path, confirm it exists before proceeding.
 From context, decide:
 - `frames` and `cols` (compute `rows = ceil(frames / cols)`)
 - `duration` in ms per frame (e.g., 2-second loop at 8 frames → 250ms each)
-- `bg_mode` (prefer `auto` unless user specifies)
+- `bg_mode` (use `rembg` for smooth/painted style; prefer `auto` for solid-color backgrounds; otherwise follow Agent Rules)
 - `align` (prefer `bottom` for grounded characters)
 - `shared_scale` (use for character sprites)
 
