@@ -370,6 +370,7 @@ def cmd_process(args: argparse.Namespace) -> None:
         "bg_mode": args.bg_mode,
         "bg_color_sampled": list(bg_color_used) if bg_color_used else None,
         "bg_threshold": args.bg_threshold,
+        "rembg_model": args.rembg_model if args.bg_mode == "rembg" else None,
         "cell_size": args.cell_size,
         "fit_scale": args.fit_scale,
         "align": args.align,
