@@ -17,7 +17,13 @@ Infer or ask for these from the user request:
 - `frames`: total number of animation frames (default: 4)
 - `cols`: columns in the grid (default: 2; rows = ceil(frames/cols))
 - `duration`: ms per frame (default: 200)
-- `bg_mode`: `white` | `magenta` | `auto` | `none` (default: `auto`)
+- `bg_mode`: `white` | `magenta` | `auto` | `none` | `rembg` (default: `auto`)
+  - `rembg`: neural-network background removal — best for smooth/painted style sprites
+  - `auto`: corner-sample color distance — best for solid-color backgrounds (magenta/white)
+- `rembg_model`: model used when `bg_mode=rembg` (default: `isnet-anime`)
+  - `isnet-anime`: anime/painted character style (recommended)
+  - `birefnet-general`: photorealistic or complex backgrounds
+  - Requires: `pip install "rembg[cpu]"` (downloads ~170 MB model on first use)
 - `bg_threshold`: tolerance for background color removal (default: 30)
 - `cell_size`: output size per frame cell in pixels (default: 128)
 - `fit_scale`: how much of the cell the sprite fills (default: 0.85)
@@ -29,7 +35,12 @@ Infer or ask for these from the user request:
 
 - If the user does not provide a source image path, ask for it before proceeding.
 - Verify the image path exists before running the script.
-- Determine `bg_mode` from context: if user says "white background" use `white`; if they say "transparent" use `none`; otherwise default to `auto`.
+- Determine `bg_mode` from context:
+  - If user says "white background" → use `white`
+  - If user says "transparent" → use `none`
+  - If the sprite is smooth/painted style (AI-generated, realistic, anime) → use `rembg`
+  - Otherwise → default to `auto`
+- When `bg_mode=rembg`, use `--rembg-model isnet-anime` by default. Switch to `birefnet-general` only if the user reports the character is photorealistic.
 - For character sprites (warriors, heroes, NPCs) default `align` to `bottom` and use `--shared-scale`.
 - For effects, icons, or items default `align` to `center`.
 - Choose `cols` to make a roughly square grid: 8 frames → `cols=4` (2×4), 4 frames → `cols=2` (2×2), 6 frames → `cols=3` (2×3).
@@ -114,6 +125,8 @@ python .claude/skills/image-to-sprite/scripts/image-to-sprite.py \
   --shared-scale
 ```
 
+> For smooth/painted-style sprites, replace `--bg-mode magenta --bg-threshold 100` with `--bg-mode rembg` (no threshold needed).
+
 ### 6. QC the result
 
 Read `pipeline-meta.json` from the output directory. Check:
@@ -175,6 +188,7 @@ python .claude/skills/image-to-sprite/scripts/image-to-sprite.py `
 | `fit_scale` | 0.85 | sprite fills 85% of cell |
 | `align` | `center` | use `bottom` for characters |
 | `shared_scale` | false | pass `--shared-scale` for characters |
+| `rembg_model` | `isnet-anime` | model used when `bg_mode=rembg` |
 
 ## Background Threshold Guide
 
