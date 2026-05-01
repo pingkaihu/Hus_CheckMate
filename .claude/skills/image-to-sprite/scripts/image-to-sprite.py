@@ -295,7 +295,9 @@ def cmd_process(args: argparse.Namespace) -> None:
 
             raw_frames.append(cell_img.copy())
 
-            if bg_color_used:
+            if bg_mode == "rembg":
+                cleaned = rembg_remove(cell_img, session=rembg_session)
+            elif bg_color_used:
                 cleaned = remove_bg_color(cell_img, bg_color_used, args.bg_threshold, edge_threshold)
             else:
                 cleaned = cell_img
