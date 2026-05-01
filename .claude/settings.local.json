@@ -18,7 +18,19 @@
       "Bash(python -c ' *)",
       "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --help)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --input any.png --output-dir /tmp/out --bg-mode rembg)",
+      "Bash(python3)",
+      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --input \"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\test.png\" --output-dir \"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\out\" --bg-mode rembg)",
+      "Bash(pip install *)",
+      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --input test_sprite.png --output-dir test-rembg-out --frames 1 --cols 1 --bg-mode rembg --rembg-model isnet-anime)",
+      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --input test_sprite.png --output-dir test-auto-out --frames 1 --cols 1 --bg-mode auto)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('test-rembg-out/pipeline-meta.json'\\)\\); print\\('rembg test:', d['bg_mode'], d['rembg_model']\\)\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('test-auto-out/pipeline-meta.json'\\)\\); print\\('auto test:', d['bg_mode'], d.get\\('rembg_model'\\)\\)\")",
+      "Bash(nvidia-smi --query-gpu=name,driver_version --format=csv,noheader)",
+      "Bash(python -c \"import torch; print\\('CUDA available:', torch.cuda.is_available\\(\\)\\)\")"
     ]
   }
 }
