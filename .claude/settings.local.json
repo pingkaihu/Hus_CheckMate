@@ -16,7 +16,9 @@
       "Bash(python .claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py --input \"H:\\\\Project\\\\Hus_CheckMate\\\\material\\\\test\\\\teat_warrior.png\" --output-dir \"H:\\\\Project\\\\Hus_CheckMate\\\\material\\\\sprites\\\\teat-warrior\" --frames 8 --cols 4 --duration 250 --bg-mode auto --align bottom --shared-scale --bob-px 3)",
       "Bash(python /h/Project/Hus_CheckMate/.claude/skills/from-image-to-sprite/scripts/from-image-to-sprite.py --input /h/Project/Hus_CheckMate/material/test/test_warrior.png --output-dir /h/Project/Hus_CheckMate/material/sprites/test-warrior --frames 8 --cols 4 --duration 250 --bg-mode auto --align bottom --shared-scale --bob-px 3)",
       "Bash(python -c ' *)",
-      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --help)"
+      "Bash(python .claude/skills/image-to-sprite/scripts/image-to-sprite.py --help)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
