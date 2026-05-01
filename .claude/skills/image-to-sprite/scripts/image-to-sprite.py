@@ -374,12 +374,22 @@ def main() -> None:
     parser.add_argument("--duration", type=int, default=200, help="ms per frame")
     parser.add_argument(
         "--bg-mode",
-        choices=["white", "magenta", "auto", "none"],
+        choices=["white", "magenta", "auto", "none", "rembg"],
         default="auto",
         help="Background removal mode",
     )
     parser.add_argument("--bg-threshold", type=int, default=30, help="Background color distance threshold")
     parser.add_argument("--bg-edge-threshold", type=int, default=None)
+    parser.add_argument(
+        "--rembg-model",
+        type=str,
+        default="isnet-anime",
+        help=(
+            "rembg model name. Only used with --bg-mode rembg. "
+            "Options: isnet-anime, birefnet-general, u2net, u2net_human_seg. "
+            "Default: isnet-anime"
+        ),
+    )
     parser.add_argument("--cell-size", type=int, default=128, help="Output cell size in px")
     parser.add_argument("--fit-scale", type=float, default=0.85, help="Sprite fill fraction of cell")
     parser.add_argument(
