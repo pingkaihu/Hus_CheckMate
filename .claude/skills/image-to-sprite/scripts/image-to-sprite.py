@@ -262,6 +262,22 @@ def cmd_process(args: argparse.Namespace) -> None:
 
     edge_threshold = args.bg_edge_threshold
 
+    # rembg session (created once, reused for all frames)
+    rembg_session = None
+    rembg_remove = None
+    if bg_mode == "rembg":
+        print(f"Loading rembg model '{args.rembg_model}'...")
+        try:
+            from rembg import new_session
+            from rembg import remove as rembg_remove
+        except ImportError:
+            raise SystemExit(
+                "rembg is not installed.\n"
+                'Run: pip install "rembg[cpu]"\n'
+                'For GPU: pip install "rembg[gpu]"'
+            )
+        rembg_session = new_session(args.rembg_model)
+
     raw_frames = []
     cropped_frames = []
 
