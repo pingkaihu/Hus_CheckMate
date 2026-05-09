@@ -70,11 +70,12 @@ Choose an `output_dir`. Convention: `material/sprites/<slug>/` where slug is der
 
 ### 3. Generate Prompt
 
-Write the following prompt for the user to use in their AI image-to-image tool (ComfyUI, Leonardo, etc.), filling in the placeholders:
+Write the following prompt for the user to use in their AI image-to-image tool (ComfyUI, Leonardo, etc.), filling in the placeholders. 
+**Crucial: The `ACTION` must strictly use the action prompt provided by the user. If the user did not specify one, you must ask them for it.**
 
 ```
 A {rows}×{cols} pixel art animation sprite sheet.
-ACTION: {action — e.g. walk, attack, idle}.
+ACTION: {user_provided_action_prompt}.
 CHARACTER DETAILS: {describe the character's style, colors, and design from the source image}.
 Use the provided image as a strict character reference for style, colors, and design.
 Grid rules: EXACTLY {frames} cells arranged in {rows} rows of {cols} columns.
